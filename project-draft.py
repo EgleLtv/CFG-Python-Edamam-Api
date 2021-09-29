@@ -1,5 +1,6 @@
 import os
 import requests
+import webbrowser
 
 # clear text file for ease of debugging each time the program is started
 file = open('recipetext.txt', 'r+')
@@ -18,7 +19,7 @@ def find_meal():
     # ask for input and only continue if typed in correctly
     while True:
         meal = input('Please choose from the following meal types:\n'
-                        'Breakfast, Lunch, Snack, Teatime, Dinner:\n').lower()
+                     'Breakfast, Lunch, Snack, Teatime, Dinner:\n').lower()
         if meal in meal_list:
             return meal
         print('Invalid choice.')
@@ -34,6 +35,7 @@ def find_diet():
             return diet
         print('Invalid choice.')
 
+
 # Edamam API open and return data
 def search_recipe(ingredient, meal, diet):
     # if diet is chosen, add health search parameter
@@ -41,8 +43,8 @@ def search_recipe(ingredient, meal, diet):
         health = '&health='+diet
     else:
         health = ''
-    app_id = 'a0c0f07e'
-    app_key = '237f8b540429c9107f3ec012672723c0'
+    app_id = ''
+    app_key = ''
     results = requests.get(
         'https://api.edamam.com/search?q={}&app_id={}&app_key={}{}&mealType={}'.format(ingredient, app_id, app_key,
                                                                                        health, meal))
@@ -67,6 +69,11 @@ def print_recipe(recipe_num, recipe, labels, recipe_ing):
     for ing in ing_values:
         print(ing['text'])
         recipe_ing.append(ing['text'])
+
+    # open recipe in browser
+    open_browser = input('Would you like to see the recipe in a browser? Y/N\n').lower()
+    if open_browser == 'y':
+        webbrowser.open(recipe['url'], new=0)
 
     return None
 
@@ -94,9 +101,6 @@ def save_recipe(recipe, recipe_ing):
                 recipe_file.write(element + '\n')
 
             recipe_file.write('\n')
-
-        # open appended text file
-        os.startfile("recipetext.txt")
 
     return None
 
@@ -161,9 +165,14 @@ def run():
         run()
     # ask if want to review calories data for recipes that have been saved to a file
     else:
+        do_open_file = input('Would you like to open the text file to review the recipes?')
+        if do_open_file == True:
+            # open appended text file
+            os.startfile("recipetext.txt")
         do_review_recipes = input('Would you like to review calorific information of the recipes saved? Y/N\n').lower()
         if do_review_recipes == 'y':
             recipe_review()
+
 
     return None
 
