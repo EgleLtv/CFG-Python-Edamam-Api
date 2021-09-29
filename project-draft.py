@@ -8,12 +8,44 @@ file.truncate(0)
 # dictionary to save calories data for review
 dict_calories = {}
 
+# lists to check for diet and meal type
+meal_list = ['breakfast', 'lunch', 'dinner', 'snack', 'teatime']
+diet_list = ['vegetarian', 'vegan', 'gluten-free', 'low-sugar', 'pescatarian', 'paleo', 'none']
+
+
+# function to ask for user input on diet
+def find_meal():
+    # ask for input and only continue if typed in correctly
+    while True:
+        meal = input('Please choose from the following meal types:\n'
+                        'Breakfast, Lunch, Snack, Teatime, Dinner:\n').lower()
+        if meal in meal_list:
+            return meal
+        print('Invalid choice.')
+
+
+# function to ask for user input on dietary preferences
+def find_diet():
+    # ask for input and only continue if typed in correctly
+    while True:
+        diet = input('Please enter your dietary choice from the following options:\n'
+                     'Vegan, Vegetarian, Pescatarian, Gluten-free, Paleo, Low-sugar, None:\n').lower()
+        if diet in diet_list:
+            return diet
+        print('Invalid choice.')
+
 # Edamam API open and return data
-def search_recipe(ingredient):
+def search_recipe(ingredient, meal, diet):
+    # if diet is chosen, add health search parameter
+    if diet != 'none':
+        health = '&health='+diet
+    else:
+        health = ''
     app_id = 'a0c0f07e'
     app_key = '237f8b540429c9107f3ec012672723c0'
     results = requests.get(
-        'https://api.edamam.com/search?q={}&app_id={}&app_key={}'.format(ingredient, app_id, app_key))
+        'https://api.edamam.com/search?q={}&app_id={}&app_key={}{}&mealType={}'.format(ingredient, app_id, app_key,
+                                                                                       health, meal))
     data = results.json()
 
     return data['hits']
@@ -82,33 +114,14 @@ def recipe_review():
     return None
 
 
-# start search by entering ingredient
+# start search by entering ingredient and diet
 def run():
-    results = search_recipe(input('What ingredient do you want a recipe for?\n'))
+    ingredient_choice = (input('What ingredient do you want a recipe for?\n'))
 
-    diet_label = input('Do you have any dietary preferences?\n'
-                       'V-vegetarian\n'
-                       'VG-vegan\n'
-                       'PC-pescatarian\n'
-                       'GF-gluten-free\n'
-                       'N-no preferences\n').lower()
-
-    if diet_label == 'v':
-        diet_choice = 'Vegetarian'
-
-    elif diet_label == 'vg':
-        diet_choice = 'Vegan'
-
-    elif diet_label == 'pc':
-        diet_choice = 'Pescatarian'
-
-    elif diet_label == 'gf':
-        diet_choice = 'Gluten-Free'
-
-    else:
-        diet_label = 'n'
-        diet_choice = ''
-        print('You did not choose any diet preferences\n')
+    # prompt user input for meal type and diet
+    meal = find_meal()
+    diet = find_diet()
+    results = search_recipe(ingredient_choice, meal, diet)
 
     # list to hold ingredients
     recipe_ing = []
@@ -119,22 +132,19 @@ def run():
         recipe = result['recipe']
         labels = recipe['healthLabels']
 
-        # print recipe if dietary preferance matches or if no dietary preference selected
-        if (diet_choice in labels) or (diet_label == 'n'):
+        recipe_num += 1
 
-            recipe_num += 1
+        # print recipe details to terminal
+        print_recipe(recipe_num, recipe, labels, recipe_ing)
 
-            # print recipe details to terminal
-            print_recipe(recipe_num, recipe, labels, recipe_ing)
+        # save recipe to a file, including the ingredient list
+        save_recipe(recipe, recipe_ing)
 
-            # save recipe to a file, including the ingredient list
-            save_recipe(recipe, recipe_ing)
+        # ask if users want to continue or not
+        do_continue = input('Do you want to see another recipe? Y/N \n').lower()
 
-            # ask if users want to continue or not
-            do_continue = input('Do you want to see another recipe? Y/N \n').lower()
-
-            if do_continue == 'n':
-                break
+        if do_continue == 'n':
+            break
 
     # ask if want to try again
     if os.stat('recipetext.txt').st_size == 0:
@@ -151,7 +161,7 @@ def run():
         run()
     # ask if want to review calories data for recipes that have been saved to a file
     else:
-        do_review_recipes = input('Would you like to review calorific information of the recipes saved? Y/N').lower()
+        do_review_recipes = input('Would you like to review calorific information of the recipes saved? Y/N\n').lower()
         if do_review_recipes == 'y':
             recipe_review()
 
