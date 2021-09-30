@@ -43,8 +43,8 @@ def search_recipe(ingredient, meal, diet):
         health = '&health='+diet
     else:
         health = ''
-    app_id = ''
-    app_key = ''
+    app_id = 'a0c0f07e'
+    app_key = '237f8b540429c9107f3ec012672723c0'
     results = requests.get(
         'https://api.edamam.com/search?q={}&app_id={}&app_key={}{}&mealType={}'.format(ingredient, app_id, app_key,
                                                                                        health, meal))
@@ -55,8 +55,8 @@ def search_recipe(ingredient, meal, diet):
 
 def print_recipe(recipe_num, recipe, labels, recipe_ing):
     print('\nThe recipe number {}\'s label is {}.\n'
-          'Total calories are {}.\n'
-          'You can access it here: {}'.format(recipe_num, recipe['label'], int(recipe['calories']),
+          'The recipe yields {} portions. Total calories are {}.\n'
+          'You can access it here: {}'.format(recipe_num, recipe['label'], int(recipe['yield']), int(recipe['calories']),
                                               recipe['url']))
 
     print('Recipe is suitable for people following these diets: {}'.format(', '.join(labels)))
@@ -165,18 +165,21 @@ def run():
         run()
     # ask if want to review calories data for recipes that have been saved to a file
     else:
-        do_open_file = input('Would you like to open the text file to review the recipes?')
-        if do_open_file == True:
+        do_open_file = input('Would you like to open the text file to review the recipes? Y/N\n').lower()
+        if do_open_file == 'y':
             # open appended text file
             os.startfile("recipetext.txt")
         do_review_recipes = input('Would you like to review calorific information of the recipes saved? Y/N\n').lower()
         if do_review_recipes == 'y':
             recipe_review()
 
-
     return None
 
 
 # run program
+
+print('Welcome to RecipSearch!\n'
+      'We\'ll choose a couple of recipes based on an ingredient of your choice'
+      'and your dietary preferences')
 run()
 print('\nBye, thank you for using RecipeSearch!')
